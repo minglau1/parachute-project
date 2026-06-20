@@ -1,4 +1,4 @@
-# Parachute Deployment System
+# Parachute Deployment System (v0.1)
 
 This repository contains the MicroPython code for a flight computer designed to automatically deploy a parachute. It detects apogee (the highest point of flight) using an accelerometer (MPU6050) and an altimeter (BMP280), and then triggers a servo motor to release the parachute.
 
