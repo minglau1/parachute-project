@@ -69,6 +69,7 @@ max_altitude = -9999.0
 FREEFALL_THRESHOLD = 0.5   
 FALL_DISTANCE = 1        
 MAX_ALTITUDE_JUMP = 15.0 # Max meters allowed to jump per reading (noise filter)
+MAX_DATA_POINTS = 500   
 
 red_led.value(0) # Turn off RED LED if all components work well
 print("System Armed. Awaiting Launch...")
@@ -78,6 +79,25 @@ print("-" * 40)
 # ==========================================
 # 4. MAIN FLIGHT LOOP
 # ==========================================
+# Helper function to append data to the CSV
+def save_flight_data_chunk(data_list):
+    try:
+        with open("flight_data.csv", "a") as f:
+            for d in data_list:
+                if isinstance(d[1], str):
+                    f.write(f"{d[0]:.3f},{d[1]},{d[2]},{d[3]}\n")
+                else:
+                    f.write(f"{d[0]:.3f},{d[1]:.2f},{d[2]:.2f},{d[3]}\n")
+    except Exception as e:
+        print("Failed to save data:", e)
+
+# Initialize the CSV file with headers before launch
+try:
+    with open("flight_data.csv", "w") as f:
+        f.write("Time(s),Altitude(m),G-Force(G),Event\n")
+except Exception as e:
+    print("Warning: Could not initialize CSV file:", e)
+
 flight_data = []
 start_time = time.ticks_ms()
 apogee_detect_count = 0
@@ -142,6 +162,12 @@ try:
     
             # Store data for collection
             flight_data.append((elapsed_time, current_altitude, total_g, event_log.strip()))
+            
+            # Memory Leak Fix: Save in batches to ensure infinite data without crashing RAM
+            if len(flight_data) >= MAX_DATA_POINTS:
+                save_flight_data_chunk(flight_data)
+                flight_data = []
+                
             print(f"Time: {elapsed_time:.2f}s | Alt: {current_altitude:.2f}m (Max: {max_altitude:.2f}m) | G-Force: {total_g:.2f}G")
             time.sleep(0.05) 
     
@@ -156,6 +182,11 @@ try:
                 elapsed_time = time.ticks_diff(time.ticks_ms(), start_time) / 1000.0
                 flight_data.append((elapsed_time, 0.0, 0.0, error_msg))
                 
+                # Memory Leak Fix
+                if len(flight_data) >= MAX_DATA_POINTS:
+                    save_flight_data_chunk(flight_data)
+                    flight_data = []
+                
             time.sleep(0.1)
 
 except KeyboardInterrupt:
@@ -166,17 +197,8 @@ except KeyboardInterrupt:
 # ==========================================
 # 6. POST-FLIGHT DATA SAVING
 # ==========================================
-# Save the data after breaking the while loop
+# Save the remaining data after breaking the while loop
 if len(flight_data) > 0:
-    print(f"\nSaving {len(flight_data)} data points to 'flight_data.csv'...")
-    try:
-        with open("flight_data.csv", "w") as f:
-            f.write("Time(s),Altitude(m),G-Force(G),Event\n")
-            for d in flight_data:
-                if isinstance(d[1], str):
-                    f.write(f"{d[0]:.3f},{d[1]},{d[2]},{d[3]}\n")
-                else:
-                    f.write(f"{d[0]:.3f},{d[1]:.2f},{d[2]:.2f},{d[3]}\n")
-        print("Data saved successfully.")
-    except Exception as e:
-        print("Failed to save data:", e)
+    print(f"\nSaving remaining {len(flight_data)} data points to 'flight_data.csv'...")
+    save_flight_data_chunk(flight_data)
+    print("Final data saved successfully.")
