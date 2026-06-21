@@ -2,7 +2,7 @@ import machine
 import time
 import gc
 from mpu6050.mpu6050 import init_mpu6050, get_mpu6050_data
-from bmp280.bmp280 import BMP280
+from bmp180.bmp180 import BMP180
 from servo.servo import Servo
 
 # ==========================================
@@ -43,10 +43,10 @@ while True:
         print("ERROR DETECTED: MPU6050 failed to initialize.")
         
     try:
-        altimeter = BMP280(i2c)
+        altimeter = BMP180(i2c)
         bmp_ok = True
     except Exception as e:
-        print("ERROR DETECTED: BMP280 failed to initialize.")
+        print("ERROR DETECTED: BMP180 failed to initialize.")
         
     if mpu_ok and bmp_ok:
         print("All components initialized successfully!")
