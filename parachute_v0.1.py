@@ -8,8 +8,7 @@ from servo.servo import Servo
 # 1. HARDWARE SETUP (ADJUST WHEN NEEDED!)
 # ==========================================
 # Initialize I2C for Sensors
-i2c_gyro = machine.I2C(1, sda=machine.Pin(14), scl=machine.Pin(15), freq=400000)
-i2c_pressure = machine.I2C(0, sda=machine.Pin(4), scl=machine.Pin(5), freq=400000)
+i2c = machine.I2C(0, sda=machine.Pin(4), scl=machine.Pin(5), freq=100000)
 
 # Initialize LEDs
 green_led = machine.Pin(19, machine.Pin.OUT)
@@ -37,13 +36,13 @@ while True:
     parachute_servo.move(0)
 
     try:
-        init_mpu6050(i2c_gyro)
+        init_mpu6050(i2c)
         mpu_ok = True
     except Exception as e:
         print("ERROR DETECTED: MPU6050 failed to initialize.")
         
     try:
-        altimeter = BMP280(i2c_pressure)
+        altimeter = BMP280(i2c)
         bmp_ok = True
     except Exception as e:
         print("ERROR DETECTED: BMP280 failed to initialize.")
@@ -88,7 +87,7 @@ try:
         try:
             # --- Read Sensors ---
             # 1. Accelerometer (G-Force)
-            mpu_data = get_mpu6050_data(i2c_gyro)
+            mpu_data = get_mpu6050_data(i2c)
             total_g = mpu_data['total_g']
             
             # 2. Altimeter (Altitude)
