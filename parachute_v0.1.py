@@ -1,5 +1,6 @@
 import machine
 import time
+import gc
 from mpu6050.mpu6050 import init_mpu6050, get_mpu6050_data
 from bmp280.bmp280 import BMP280
 from servo.servo import Servo
@@ -81,6 +82,7 @@ print("-" * 40)
 # ==========================================
 # Helper function to append data to the CSV
 def save_flight_data_chunk(data_list):
+    gc.collect() # FORCE garbage collection to free up contiguous memory for the 4KB file buffer!
     try:
         with open("flight_data.csv", "a") as f:
             for d in data_list:
@@ -167,6 +169,7 @@ try:
             if len(flight_data) >= MAX_DATA_POINTS:
                 save_flight_data_chunk(flight_data)
                 flight_data = []
+                gc.collect() # Instantly clear the old list from RAM
                 
             print(f"Time: {elapsed_time:.2f}s | Alt: {current_altitude:.2f}m (Max: {max_altitude:.2f}m) | G-Force: {total_g:.2f}G")
             time.sleep(0.05) 
