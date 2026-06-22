@@ -58,7 +58,15 @@ while True:
 # Set initial servo state to LOCKED (holding the rubber band)
 parachute_servo.move(0)
 print("Servo Locked. Parachute Secured.")
-time.sleep(2) # Give sensors time to stabilize
+print("Warming up sensors and flushing noise filters...")
+for _ in range(60): # Loop 40 times over 2 seconds to flush out the software IIR filter
+    try:
+        altimeter.read_data()
+        altimeter.read_altitude()
+    except Exception:
+        pass
+    time.sleep(0.1)
+print("Sensors stabilized and ready!")
 
 # ==========================================
 # 3. FLIGHT VARIABLES & THRESHOLDS
@@ -70,7 +78,7 @@ max_altitude = -9999.0
 FREEFALL_THRESHOLD = 0.5   
 FALL_DISTANCE = 2.0        
 MAX_ALTITUDE_JUMP = 15.0 # Max meters allowed to jump per reading (noise filter)
-MAX_DATA_POINTS = 500   
+MAX_DATA_POINTS = 50   
 
 red_led.value(0) # Turn off RED LED if all components work well
 print("System Armed. Awaiting Launch...")
