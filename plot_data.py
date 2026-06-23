@@ -170,7 +170,7 @@ def plot_flight_data(csv_file=None):
         plt.tight_layout()
         
         # Ensure the output directory exists
-        output_dir = os.path.join("flight data collection", "png folder")
+        output_dir = os.path.join("flight data collection", "png")
         os.makedirs(output_dir, exist_ok=True)
         
         # Auto-save a high-res image of the flight in the specific folder
