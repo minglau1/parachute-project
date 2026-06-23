@@ -11,6 +11,14 @@ class BMP180:
         b = self.i2c.readfrom_mem(self.address, 0xAA, 22)
         # Unpack: 3 signed short, 3 unsigned short, 5 signed short
         self.cal = unpack(">hhhHHHhhhhh", b)
+        
+        # --- Software Fix for Startup Spike ---
+        # Do 5 dummy reads to let the sensor's internal ADC stabilize before use
+        for _ in range(5):
+            self.read_data()
+            time.sleep_ms(10)
+            
+        self._filtered_alt = None
 
     def read_raw_temp(self):
         self.i2c.writeto_mem(self.address, 0xF4, bytearray([0x2E]))
@@ -66,6 +74,15 @@ class BMP180:
         temp, pressure = self.read_data()
         if pressure is None:
             return 0.0
-        # Calculate altitude from pressure
-        altitude = 44330.0 * (1.0 - (pressure / sea_level_pressure) ** 0.1903)
-        return altitude
+        # Calculate raw altitude from pressure
+        raw_altitude = 44330.0 * (1.0 - (pressure / sea_level_pressure) ** 0.1903)
+        
+        # --- Software IIR Filter (Mimics the BMP280 hardware filter) ---
+        if self._filtered_alt is None:
+            self._filtered_alt = raw_altitude
+        else:
+            # Blend 80% of the old altitude with 20% of the new raw altitude
+            # This completely flattens out sudden 1-reading spikes!
+            self._filtered_alt = (self._filtered_alt * 0.8) + (raw_altitude * 0.2)
+            
+        return self._filtered_alt
