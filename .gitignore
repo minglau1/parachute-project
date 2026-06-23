@@ -3,5 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Flight data logs
+# Flight data logs and generated reports
 flight_data.csv
+flight data collection/
+*_report.png
+*.csv

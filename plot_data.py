@@ -169,8 +169,14 @@ def plot_flight_data(csv_file=None):
         # --- Interactive Cursor & Display ---
         plt.tight_layout()
         
-        # Auto-save a high-res image of the flight!
-        output_png = f"{os.path.splitext(csv_file)[0]}_report.png"
+        # Ensure the output directory exists
+        output_dir = os.path.join("flight data collection", "png folder")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Auto-save a high-res image of the flight in the specific folder
+        base_name = os.path.basename(csv_file)
+        name_only = os.path.splitext(base_name)[0]
+        output_png = os.path.join(output_dir, f"{name_only}_report.png")
         plt.savefig(output_png, dpi=300)
         
         print("\n" + stats_text.replace('★ FLIGHT SUMMARY ★\n', '--- SUMMARY ---\n'))
@@ -186,9 +192,5 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         plot_flight_data(sys.argv[1])
     else:
-        # Otherwise, try the default name, or launch the file picker
-        default_file = 'flight_data.csv'
-        if os.path.exists(default_file):
-            plot_flight_data(default_file)
-        else:
-            plot_flight_data(None) # Triggers the GUI file picker
+        # Launch the GUI file picker to let the user choose the flight data
+        plot_flight_data(None)
