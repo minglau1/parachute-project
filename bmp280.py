@@ -8,9 +8,14 @@ class BMP280:
         self.tb = unpack('<HhhHhhhhhhhh', self.i2c.readfrom_mem(self.addr, 0x88, 24))
         self.i2c.writeto_mem(self.addr, 0xF4, b'\x2F') 
         self.i2c.writeto_mem(self.addr, 0xF5, b'\x0C') 
+        self._last_alt = None
 
     def read_data(self):
-        data = self.i2c.readfrom_mem(self.addr, 0xF7, 6)
+        try:
+            data = self.i2c.readfrom_mem(self.addr, 0xF7, 6)
+        except OSError:
+            return None, None
+            
         up = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
         ut = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
 
@@ -40,5 +45,10 @@ class BMP280:
     def read_altitude(self, sea_level_pressure=101325.0):
         # Read the current pressure and calculate altitude
         temp_c, pressure_pa = self.read_data()
+        
+        if pressure_pa is None:
+            return self._last_alt if self._last_alt is not None else 0.0
+            
         altitude = 44330.0 * (1.0 - (pressure_pa / sea_level_pressure) ** 0.1903)
+        self._last_alt = altitude
         return altitude
