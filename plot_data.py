@@ -37,8 +37,8 @@ def plot_flight_data(csv_file=None):
         
         # --- 2. RELATIVE ALTITUDE ZEROING ---
         # Average the first 10 readings to find the "Launchpad Altitude" and zero it out!
-        ground_altitude = df['Altitude(m)'].head(10).mean()
-        df['Relative_Alt(m)'] = df['Altitude(m)'] - ground_altitude
+        ground_altitude = df['R.Altitude(m)'].head(10).mean()
+        df['Relative_Alt(m)'] = df['R.Altitude(m)'] - ground_altitude
         
         # --- Derived Metrics (Analytics) ---
         df['Smoothed_Alt'] = df['Relative_Alt(m)'].rolling(window=5, min_periods=1).mean()
@@ -89,7 +89,7 @@ def plot_flight_data(csv_file=None):
         # --- 1. Plot Altitude ---
         shade_flight_phases(ax1)
         ax1.plot(df['Time(s)'], df['Relative_Alt(m)'], 'b-', linewidth=2.5, label='Relative Altitude')
-        ax1.set_ylabel('Altitude (m)', color='darkblue', fontweight='bold')
+        ax1.set_ylabel('Relative Altitude (m)', color='darkblue', fontweight='bold')
         ax1.set_title(f'Rocket Flight Analysis - {os.path.basename(csv_file)}', fontsize=16, fontweight='bold')
         
         # Annotate Apogee with a cool arrow
@@ -108,7 +108,7 @@ def plot_flight_data(csv_file=None):
         stats_text = (
             f"★ FLIGHT SUMMARY ★\n"
             f"Launchpad Offset: {ground_altitude:.1f} m\n"
-            f"Max Altitude: {max_alt:.1f} m\n"
+            f"Max R.Altitude: {max_alt:.1f} m\n"
             f"Max G-Force: {max_g:.1f} G\n"
             f"Apogee Time: {apogee_time:.1f} s\n"
         )
